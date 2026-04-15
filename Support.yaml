@@ -1,0 +1,193 @@
+openapi: 3.0.0
+info:
+  title: Telecom Support System API
+  description: API для автоматизації роботи диспетчерів та майстрів телеком-провайдера
+  version: 1.0.0
+servers:
+  - url: https://api.telecom-support.ua/v1
+    description: Основний сервер розробки
+
+tags:
+  - name: Orders
+    description: Управління заявками на ремонт
+  - name: Technicians
+    description: Робота з персоналом та призначенням бригад
+  - name: External
+    description: Інтеграція з Billing та SMS Gateway
+
+paths:
+  /orders:
+    get:
+      summary: Список усіх заявок
+      tags: [Orders]
+      responses:
+        '200':
+          description: Успішне отримання списку
+    post:
+      summary: Створення нової заявки клієнтом
+      tags: [Orders]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Order'
+      responses:
+        '201':
+          description: Заявка створена
+
+  /orders/{id}:
+    get:
+      summary: Детальна інформація про заявку
+      tags: [Orders]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Дані отримано
+    delete:
+      summary: Видалення заявки (скасування)
+      tags: [Orders]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Заявку видалено
+
+  /orders/{id}/status:
+    patch:
+      summary: Оновлення статусу (майстром або диспетчером)
+      tags: [Orders]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [new, in_progress, completed, cancelled]
+      responses:
+        '200':
+          description: Статус оновлено
+
+  /orders/{id}/assign:
+    post:
+      summary: Призначення майстра на заявку
+      tags: [Technicians]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Майстра призначено
+
+  /technicians:
+    get:
+      summary: Список доступних технічних спеціалістів
+      tags: [Technicians]
+      responses:
+        '200':
+          description: Список отримано
+
+  /clients/{id}/billing-status:
+    get:
+      summary: Перевірка стану рахунку клієнта
+      tags: [External]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Статус балансу отримано
+
+  /clients/{id}/history:
+    get:
+      summary: Історія звернень конкретного клієнта
+      tags: [External]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Історію отримано
+
+  /notifications/send-eta:
+    post:
+      summary: Відправка SMS про час прибуття майстра
+      tags: [External]
+      responses:
+        '202':
+          description: Запит на відправку прийнято
+
+components:
+  schemas:
+    Order:
+      type: object
+      required: [clientId, description]
+      properties:
+        id:
+          type: string
+          example: "ord-550"
+        clientId:
+          type: string
+          example: "client-123"
+        description:
+          type: string
+          example: "Немає сигналу на лінії"
+        status:
+          type: string
+          example: "new"
+    
+    Technician:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "tech-01"
+        name:
+          type: string
+          example: "Example object"
+        isAvailable:
+          boolean: true
+    
+    Client:
+      type: object
+      properties:
+        id:
+          type: string
+        fullName:
+          type: string
+        address:
+          type: string
+    
+    BillingStatus:
+      type: object
+      properties:
+        balance:
+          type: number
+        isAccessBlocked:
+          type: boolean

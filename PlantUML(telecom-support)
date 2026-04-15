@@ -1,0 +1,21 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+LAYOUT_WITH_LEGEND()
+
+Person(client, "Клієнт (Андрій)", "Користувач послуг телекому")
+Person(dispatcher, "Диспетчер (Вікторія)", "Співробітник служби підтримки")
+Person(technician, "Тех. спеціаліст", "Майстер по ремонту ліній")
+
+System(telecom_system, "Система підтримки телекому", "Обробка заявок та координація робіт")
+
+System_Ext(billing, "Білінгова система", "Облік фінансів та послуг")
+System_Ext(sms, "SMS-шлюз", "Сервіс сповіщень")
+
+Rel(client, telecom_system, "Подає заявку на ремонт (HTTPS)")
+Rel(dispatcher, telecom_system, "Призначає бригади (HTTPS)")
+Rel(technician, telecom_system, "Звітує про виконання (HTTPS)")
+
+Rel(telecom_system, billing, "Перевіряє статус оплати (REST API)")
+Rel(telecom_system, sms, "Надсилає ETA-сповіщення (API)")
+@enduml
